@@ -17,8 +17,8 @@ especially well with a mod'd Unreal to give the admin necessary notification
 of duplicate onions on the network(remember, shit is open source for, 
 well, reasons).
 
-I'm putting this script up here because there's a lot of new and better ways of doing 
+I'm putting this script up here because there's a lot of new/different ways of doing 
 this and similar such things out there, but figured some people interested in private IRC ch@s can 
-get some mileage out of it.
+get some mileage or ideas out of it.
 
 Also, client-side crypto is your friend.
