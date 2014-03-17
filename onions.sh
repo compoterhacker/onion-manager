@@ -12,12 +12,14 @@ echo "[*] UnrealIRC Onion Manager
 [*] -h for help
 "
 
-while getopts ":ha:d:u:l" opt; do
+while getopts ":ha:d:u:r:e:l" opt; do
   case $opt in
     h)
       echo "[*] -a Add new onion ($0 -a username)
 [*] -d Delete users onion ($0 -d username)
 [*] -u Show users onion information ($0 -u username)
+[*] -r Respawn users onion ($0 -r username)
+[*] -e Edit users onion/private_key ($0 -e username)
 [*] -l List all users onion information
 "
       ;;
@@ -32,6 +34,14 @@ while getopts ":ha:d:u:l" opt; do
     u)
       get_name=$OPTARG
       get=1
+      ;;
+    r)
+      del_name=$OPTARG
+      redo=1
+      ;;
+    e)
+      edit_name=$OPTARG
+      edit=1
       ;;
     l)
       OPT_DETECT=0
@@ -72,7 +82,6 @@ function del_onion() {
   echo ""
   /etc/init.d/tor reload # edit to suit your linux distro's shit and shit
   $UNREAL./unreal rehash
-  exit
 }
 
 function add_onion() {
@@ -124,12 +133,12 @@ listen  127.0.0.1:$ssl
     exit
   fi
   
+  echo ""
   echo "[*] Username: $user_name"
   echo "[*] Onion: $(cat $TORLIB$user_name/hostname)"
   echo "[*] Port: $port"
-  echo "[*] SSL Port: $ssl"
-  
-  exit
+  echo "[*] SSL Port: $ssl
+  "
 }
 
 if [ "$(id -u)" != "0" ]; then
@@ -164,6 +173,29 @@ if [ "$get" == 1 ]; then
   fi
 fi
 
+if [ "$redo" == 1 ]; then
+  if [ ! -f $TORLIB$del_name/hostname ]; then
+    echo "[-] User not found!"
+    exit 1
+  else
+    del_onion
+    echo "[*] Creating new onion...
+    "
+    user_name=$del_name
+    add_onion
+  fi
+fi
+
+if [ "$edit" == 1 ]; then
+  if [ ! -f $TORLIB$edit_name/hostname ]; then
+    echo "[-] User not found!"
+    exit 1
+  else
+    vi $TORLIB$edit_name/private_key
+    /etc/init.d/tor reload
+  fi
+fi
+
 if [ "$OPT_DETECT" == 0 ]; then
   echo "[*] Gathering all user informaton ..."
   while read line;
@@ -173,5 +205,4 @@ if [ "$OPT_DETECT" == 0 ]; then
       get_user
     fi
   done < "$UNREALRC";
-  exit
 fi
