@@ -12,7 +12,7 @@ connect to) on the network. Breach of trust, ie leaking of a users onion,
 can be easily identified and that user can be dealt with via expungement,
 or, ya know, fuckyou.pl THEN expungement.
 
-This idea isn't new by any stretch, but it's been effective in keeping meanies away, and works
+This idea isn't new by any stretch nor mine, but it's been effective in keeping meanies away, and works
 especially well with a mod'd Unreal to give the admin necessary notification 
 of duplicate onions on the network(remember, shit is open source for, 
 well, reasons).
