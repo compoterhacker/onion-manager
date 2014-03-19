@@ -85,6 +85,11 @@ function del_onion() {
   "
   /etc/init.d/tor reload # edit to suit your linux distro's shit and shit
   $UNREAL./unreal rehash
+  
+  if [ "$redo" == 1 ]; then
+    user_name=$del_name
+    add_onion
+  fi
 }
 
 function add_onion() {
@@ -209,19 +214,6 @@ if [ "$get_name" != "" ]; then
     exit 1
   else
     get_user
-  fi
-fi
-
-if [ "$redo" == 1 ]; then
-  if [ ! -f $TORLIB$del_name/hostname ]; then
-    echo "[-] User not found!"
-    exit 1
-  else
-    del_onion
-    echo "[*] Creating new onion...
-    "
-    user_name=$del_name
-    add_onion
   fi
 fi
 
