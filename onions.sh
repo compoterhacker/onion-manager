@@ -12,28 +12,27 @@ echo "[*] UnrealIRC Onion Manager
 [*] -h for help
 "
 
-while getopts ":ha:d:u:r:e:l" opt; do
+while getopts ":ha:d:u:r:e:c:l" opt; do
   case $opt in
     h)
-      echo "[*] -a Add new onion ($0 -a username)
-[*] -d Delete users onion ($0 -d username)
-[*] -u Show users onion information ($0 -u username)
-[*] -r Respawn users onion ($0 -r username)
-[*] -e Edit users onion/private_key ($0 -e username)
-[*] -l List all users onion information
+      echo "Usage:
+   -a 	Add new onion ($0 -a <username>)
+   -d 	Delete users onion ($0 -d <username>)
+   -u 	Show users onion information ($0 -u <username>)
+   -r 	Respawn users onion ($0 -r <username>)
+   -e 	Edit users onion/private_key ($0 -e <username>)
+   -c 	Add user with custom onion via shallot ($0 -c <username> <shallot regex>)
+   -l 	List all users onion information
 "
       ;;
     a)
       user_name=$OPTARG
-      add=1
       ;;
     d)
       del_name=$OPTARG
-      del=1
       ;;
     u)
       get_name=$OPTARG
-      get=1
       ;;
     r)
       del_name=$OPTARG
@@ -41,8 +40,12 @@ while getopts ":ha:d:u:r:e:l" opt; do
       ;;
     e)
       edit_name=$OPTARG
-      edit=1
       ;;
+    c)
+	  user_name=$2
+	  regex=$3
+	  shallot=1
+	  ;;    
     l)
       OPT_DETECT=0
       ;;
@@ -68,8 +71,8 @@ function get_user() {
   echo "[*] Username: $get_name"
   echo "[*] Onion: $(cat $TORLIB$get_name/hostname)"
   echo "[*] Port: $port"
-  echo "[*] SSL: $ssl"
-  echo ""
+  echo "[*] SSL: $ssl
+  "
 }
 
 function del_onion() {
@@ -78,8 +81,8 @@ function del_onion() {
   sed -i "/START $del_name/,/END $del_name/d" $UNREALRC
   rm -rf "${tor}"
 
-  echo "[*] $del_name has... been... PURGED!"
-  echo ""
+  echo "[*] $del_name has... been... PURGED!
+  "
   /etc/init.d/tor reload # edit to suit your linux distro's shit and shit
   $UNREAL./unreal rehash
 }
@@ -101,6 +104,42 @@ HiddenServiceDir $TORLIB$user_name/
 HiddenServicePort 6667 127.0.0.1:$port # $user_name
 HiddenServicePort 6697 127.0.0.1:$ssl # $user_name" >> $TORRC
 
+  if [ "$shallot" == 1 ]; then
+    echo "[*] Using shallot to generate custom onion..."
+    if [ "$regex" == "" ]; then
+      echo "[-] No shallot regex supplied, jerk"
+      sed -i "/$user_name/d" $TORRC
+      exit 1
+    else if command -v shallot 2>/dev/null; then
+      /etc/init.d/tor reload | grep -iov "Reloading"
+        
+      sleep 3
+          
+      privkey=$TORLIB$user_name/private_key
+      hostname=$TORLIB$user_name/hostname
+          
+      shallot -f private_key $regex
+      pid=$(ps aux | grep shallot | grep -v "grep" | awk '{print $2}')
+      while ps -p $pid > /dev/null 2>&1; do sleep 1; done;
+          
+      while read lines;
+      do
+        if [[ $lines == Found* ]]; then
+          echo "$lines" | awk '{print $7}' > $hostname
+        fi
+      done < private_key;
+          
+      sed -i '1,3d' private_key   
+      cat private_key > $privkey
+      rm private_key
+    else
+      echo "[-] Please install shallot or put it in \$PATH"
+      sed -i "/$user_name/d" $TORRC
+      exit 1
+      fi
+    fi
+  fi
+  
   echo "[*] Adding $user_name to unrealircd.conf"
   echo "
 /* START $user_name LISTEN BLOCKS */
@@ -120,7 +159,7 @@ listen  127.0.0.1:$ssl
     };
 };
 /* END $user_name LISTEN BLOCKS */" >> $UNREALRC
-
+    
   echo "[*] Success!
   "
   /etc/init.d/tor reload
@@ -146,7 +185,7 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
-if [ "$add" == 1 ]; then
+if [ "$user_name" != "" ]; then
   if [ ! -f $TORLIB$user_name/hostname ]; then
     add_onion
   else
@@ -155,7 +194,7 @@ if [ "$add" == 1 ]; then
   fi
 fi
 
-if [ "$del" == 1 ]; then
+if [ "$del_name" != "" ]; then
   if [ ! -f $TORLIB$del_name/hostname ]; then
     echo "[-] User not found!"
     exit 1
@@ -164,7 +203,7 @@ if [ "$del" == 1 ]; then
   fi
 fi
 
-if [ "$get" == 1 ]; then
+if [ "$get_name" != "" ]; then
   if [ ! -f $TORLIB$get_name/hostname ]; then
     echo "[-] User not found!"
     exit 1
@@ -186,12 +225,14 @@ if [ "$redo" == 1 ]; then
   fi
 fi
 
-if [ "$edit" == 1 ]; then
+if [ "$edit_name" != "" ]; then
   if [ ! -f $TORLIB$edit_name/hostname ]; then
     echo "[-] User not found!"
     exit 1
   else
+    hostname=$TORLIB$edit_name/hostname
     vi $TORLIB$edit_name/private_key
+    rm -f {$hostname}
     /etc/init.d/tor reload
   fi
 fi
