@@ -42,10 +42,10 @@ while getopts ":ha:d:u:r:e:c:l" opt; do
       edit_name=$OPTARG
       ;;
     c)
-	  user_name=$2
-	  regex=$3
-	  shallot=1
-	  ;;    
+      user_name=$2
+      regex=$3
+      shallot=1
+      ;;
     l)
       OPT_DETECT=0
       ;;
@@ -85,7 +85,7 @@ function del_onion() {
   "
   /etc/init.d/tor reload # edit to suit your linux distro's shit and shit
   $UNREAL./unreal rehash
-  
+
   if [ "$redo" == 1 ]; then
     user_name=$del_name
     add_onion
@@ -93,14 +93,14 @@ function del_onion() {
 }
 
 function add_onion() {
-  port=$[ 9000 + $[ RANDOM % 80000 ]]
+  port=$[ 9000 + $[ RANDOM % 65535 ]]
   if [[ $(netstat -lnt | awk '$6 == "LISTEN" && $4 ~ ".$port"') == *LISTEN* ]]; then
-    $port=$[ 9000 + $[ RANDOM % 80000 ]] # enough redundancy, imo.
+    $port=$[ 9000 + $[ RANDOM % 65535 ]] # enough redundancy, imo.
   fi
 
-  ssl=$[ 9000 + $[ RANDOM % 80000 ]]
+  ssl=$[ 9000 + $[ RANDOM % 65535 ]]
   if [[ $(netstat -lnt | awk '$6 == "LISTEN" && $4 ~ ".$ssl"') == *LISTEN* ]]; then
-    $ssl=$[ 9000 + $[ RANDOM % 80000 ]]
+    $ssl=$[ 9000 + $[ RANDOM % 65535 ]]
   fi
 
   echo "[*] Adding $user_name to torrc"
@@ -117,24 +117,24 @@ HiddenServicePort 6697 127.0.0.1:$ssl # $user_name" >> $TORRC
       exit 1
     else if command -v shallot 2>/dev/null; then
       /etc/init.d/tor reload | grep -iov "Reloading"
-        
+
       sleep 3
-          
+
       privkey=$TORLIB$user_name/private_key
       hostname=$TORLIB$user_name/hostname
-          
+
       shallot -f private_key $regex
       pid=$(ps aux | grep shallot | grep -v "grep" | awk '{print $2}')
       while ps -p $pid > /dev/null 2>&1; do sleep 1; done;
-          
+
       while read lines;
       do
         if [[ $lines == Found* ]]; then
           echo "$lines" | awk '{print $7}' > $hostname
         fi
       done < private_key;
-          
-      sed -i '1,3d' private_key   
+
+      sed -i '1,3d' private_key
       cat private_key > $privkey
       rm private_key
     else
@@ -144,40 +144,42 @@ HiddenServicePort 6697 127.0.0.1:$ssl # $user_name" >> $TORRC
       fi
     fi
   fi
-  
+
   echo "[*] Adding $user_name to unrealircd.conf"
   echo "
 /* START $user_name LISTEN BLOCKS */
 listen  127.0.0.1:$port
-{   
+{
     options
-    {   
+    {
         clientsonly;
     };
 };
 listen  127.0.0.1:$ssl
-{   
+{
     options
-    {   
+    {
         ssl;
         clientsonly;
     };
 };
 /* END $user_name LISTEN BLOCKS */" >> $UNREALRC
-    
-  echo "[*] Success!
-  "
+
   /etc/init.d/tor reload
   $UNREAL./unreal rehash
-  
+
   sleep 2
-  
+
   if [ ! -f $TORLIB$user_name/hostname ]; then
     echo "[-] Failed to generate onion! Check your configuration."
-    exit
+    sed -i "/$user_name/d" $TORRC
+    sed -i "/START $user_name/,/END $user_name/d" $UNREALRC
+    exit 1
+  else
+    echo "[*] Success!
+  "
   fi
-  
-  echo ""
+
   echo "[*] Username: $user_name"
   echo "[*] Onion: $(cat $TORLIB$user_name/hostname)"
   echo "[*] Port: $port"
