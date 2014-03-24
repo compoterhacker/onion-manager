@@ -6,7 +6,6 @@
 TORRC="/etc/tor/torrc"
 TORLIB="/var/lib/tor/"
 UNREALRC="/home/ircd/Unreal3.2.10.2.patched/unrealircd.conf"
-UNREAL="/home/ircd/Unreal3.2.10.2.patched/"
 
 echo "[*] UnrealIRC Onion Manager
 [*] -h for help
@@ -83,8 +82,8 @@ function del_onion() {
 
   echo "[*] $del_name has... been... PURGED!
   "
-  /etc/init.d/tor reload # edit to suit your linux distro's shit and shit
-  $UNREAL./unreal rehash
+  kill -1 $(ps aux | grep tor | grep -v "grep" | awk '{print $2}')
+  kill -1 $(ps aux | grep ircd | grep -v "grep" | awk '{print $2}')
 
   if [ "$redo" == 1 ]; then
     user_name=$del_name
@@ -116,7 +115,7 @@ HiddenServicePort 6697 127.0.0.1:$ssl # $user_name" >> $TORRC
       sed -i "/$user_name/d" $TORRC
       exit 1
     else if command -v shallot 2>/dev/null; then
-      /etc/init.d/tor reload | grep -iov "Reloading"
+      kill -1 $(ps aux | grep tor | grep -v "grep" | awk '{print $2}')
 
       sleep 3
 
@@ -165,8 +164,9 @@ listen  127.0.0.1:$ssl
 };
 /* END $user_name LISTEN BLOCKS */" >> $UNREALRC
 
-  /etc/init.d/tor reload
-  $UNREAL./unreal rehash
+  echo "[*] Reloading Tor/Unreal configs..."
+  kill -1 $(ps aux | grep tor | grep -v "grep" | awk '{print $2}')
+  kill -1 $(ps aux | grep ircd | grep -v "grep" | awk '{print $2}')
 
   sleep 2
 
@@ -227,7 +227,7 @@ if [ "$edit_name" != "" ]; then
     hostname=$TORLIB$edit_name/hostname
     vi $TORLIB$edit_name/private_key
     rm -f {$hostname}
-    /etc/init.d/tor reload
+    kill -1 $(ps aux | grep tor | grep -v "grep" | awk '{print $2}')
   fi
 fi
 
