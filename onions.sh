@@ -92,14 +92,14 @@ function del_onion() {
 }
 
 function add_onion() {
-  port=$[ 9000 + $[ RANDOM % 65535 ]]
+  port=$[ 9000 + $[ RANDOM % 56535 ]]
   if [[ $(netstat -lnt | awk '$6 == "LISTEN" && $4 ~ ".$port"') == *LISTEN* ]]; then
-    $port=$[ 9000 + $[ RANDOM % 65535 ]] # enough redundancy, imo.
+    $port=$[ 9000 + $[ RANDOM % 56535 ]] # enough redundancy, imo.
   fi
 
-  ssl=$[ 9000 + $[ RANDOM % 65535 ]]
+  ssl=$[ 9000 + $[ RANDOM % 56535 ]]
   if [[ $(netstat -lnt | awk '$6 == "LISTEN" && $4 ~ ".$ssl"') == *LISTEN* ]]; then
-    $ssl=$[ 9000 + $[ RANDOM % 65535 ]]
+    $ssl=$[ 9000 + $[ RANDOM % 56535 ]]
   fi
 
   echo "[*] Adding $user_name to torrc"
