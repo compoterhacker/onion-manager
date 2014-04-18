@@ -82,8 +82,8 @@ function del_onion() {
 
   echo "[*] $del_name has... been... PURGED!
   "
-  kill -1 $(ps aux | grep tor | grep -v "grep" | awk '{print $2}')
-  kill -1 $(ps aux | grep ircd | grep -v "grep" | awk '{print $2}')
+  killall -HUP tor
+  killall -HUP ircd
 
   if [ "$redo" == 1 ]; then
     user_name=$del_name
@@ -115,7 +115,7 @@ HiddenServicePort 6697 127.0.0.1:$ssl # $user_name" >> $TORRC
       sed -i "/$user_name/d" $TORRC
       exit 1
     else if command -v shallot 2>/dev/null; then
-      kill -1 $(ps aux | grep tor | grep -v "grep" | awk '{print $2}')
+      killall -HUP tor
 
       sleep 3
 
@@ -165,9 +165,9 @@ listen  127.0.0.1:$ssl
 /* END $user_name LISTEN BLOCKS */" >> $UNREALRC
 
   echo "[*] Reloading Tor/Unreal configs..."
-  kill -1 $(ps aux | grep tor | grep -v "grep" | awk '{print $2}')
-  kill -1 $(ps aux | grep ircd | grep -v "grep" | awk '{print $2}')
-
+  killall -HUP tor
+  killall -HUP ircd
+  
   sleep 2
 
   if [ ! -f $TORLIB$user_name/hostname ]; then
@@ -227,7 +227,7 @@ if [ "$edit_name" != "" ]; then
     hostname=$TORLIB$edit_name/hostname
     vi $TORLIB$edit_name/private_key
     rm -f {$hostname}
-    kill -1 $(ps aux | grep tor | grep -v "grep" | awk '{print $2}')
+    killall -HUP tor
   fi
 fi
 
