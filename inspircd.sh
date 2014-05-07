@@ -152,7 +152,7 @@ HiddenServicePort 6697 127.0.0.1:$ssl # $user_name" >> $TORRC
   echo "[*] Adding $user_name to inspircd.conf"
   echo "
 <bind address=\"127.0.0.1\" port=\"$port\" type=\"clients\"> # $user_name CRUNK
-<bind address=\"127.0.0.1\" port=\"$ssl\" type=\"clients\" ssl="openssl"> # $user_name
+<bind address=\"127.0.0.1\" port=\"$ssl\" type=\"clients\" ssl=\"openssl\"> # $user_name
  ">> $UNREALRC
 
   echo "[*] Reloading Tor/inspircd configs..."
