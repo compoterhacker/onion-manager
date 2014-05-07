@@ -218,7 +218,7 @@ if [ "$edit_name" != "" ]; then
     hostname=$TORLIB$edit_name/hostname
     vi $TORLIB$edit_name/private_key
     rm -f {$hostname}
-    kservice tor reload
+    service tor reload
   fi
 fi
 
